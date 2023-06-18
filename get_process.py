@@ -113,8 +113,7 @@ def closest_color_hsv(np_image):
     return np_image
 
 
-import cv2
-import numpy as np
+
 
 
 # ... [之前的camera类和closest_color_hsv函数代码] ...
