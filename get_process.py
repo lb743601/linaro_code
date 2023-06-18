@@ -218,27 +218,6 @@ if __name__ == "__main__":
         if np_image is not None:
             np_image = cv2.resize(np_image, (400, 300))
             np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
-
-            # #cv2.imshow("Ori Image", np_image)
-            #
-            # processed_image = closest_color_hsv(np_image)
-            # processed_image = cv2.GaussianBlur(processed_image, (9, 9), 0)
-            # x= detect_and_draw_vertical_line(processed_image)
-            # #x[0]为0代表全绿，x[0]为1代表全黄，x[0]为3代表黄绿，x[1]为分割线中点横坐标，x[2]为1则代表左黄右绿，为2代表左绿右黄
-            # if(x[0]==0):
-            #     number=255
-            # if(x[0]==1):
-            #     number=0
-            # if(x[0]==3):
-            #     if(x[2]==1):
-            #         number=128+int(100*x[1]/612)
-            #     else:
-            #         number=int(100*x[1]/612)
-            # #11111111为全绿，00000000为全黄，否则1开头为左黄右绿，0开头左绿右黄
-            # print(number,x[0],x[1],x[2])
-            # data = number.to_bytes(1, 'big')
-            # serial.write(data)
-            # time.sleep(1)
             cv2.imshow("Camera Image", np_image)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

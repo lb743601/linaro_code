@@ -8,9 +8,9 @@ import struct
 from time import sleep
 from periphery import Serial
 serial1 = Serial("/dev/ttyS0", 115200)
-# serial2 = Serial("/dev/ttyUSB1", 9600)
-# serial3 = Serial("/dev/ttyUSB2", 9600)
-# serial4 = Serial("/dev/ttyUSB3", 9600)
+# serial2 = Serial("/dev/ttyUSB1", 115200)
+# serial3 = Serial("/dev/ttyUSB2", 115200)
+# serial4 = Serial("/dev/ttyUSB3", 115200)
 green_lower = np.array([35, 43, 46], dtype=np.uint8)
 green_upper = np.array([77, 255, 255], dtype=np.uint8)
 
@@ -18,16 +18,16 @@ green_upper = np.array([77, 255, 255], dtype=np.uint8)
 yellow_lower = np.array([26, 43, 46], dtype=np.uint8)
 yellow_upper = np.array([34, 255, 255], dtype=np.uint8)
 
-def check_colors(hsv_colors):
-    # Check the first color (row) for being green
-    green_mask = cv2.inRange(hsv_colors[0], green_lower, green_upper)
-    is_first_color_green = green_mask.any()
+# def check_colors(hsv_colors):
+#     # Check the first color (row) for being green
+#     green_mask = cv2.inRange(hsv_colors[0], green_lower, green_upper)
+#     is_first_color_green = green_mask.any()
 
-    # Check the second color (row) for being yellow
-    yellow_mask = cv2.inRange(hsv_colors[1], yellow_lower, yellow_upper)
-    is_second_color_yellow = yellow_mask.any()
+#     # Check the second color (row) for being yellow
+#     yellow_mask = cv2.inRange(hsv_colors[1], yellow_lower, yellow_upper)
+#     is_second_color_yellow = yellow_mask.any()
 
-    return is_first_color_green and is_second_color_yellow
+#     return is_first_color_green and is_second_color_yellow
 def is_yellow_green(colors):
     color1, color2 = colors
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         control_matrix_uint8=cv2.resize(control_matrix_uint8,(96,100))
         # control_matrix = cv2.resize(control_matrix_uint8, (96, 100), interpolation=cv2.INTER_NEAREST)
         # control_matrix = control_matrix == 1.0
-        #cv2.imshow("0-1", control_matrix_uint8)
+        cv2.imshow("black:green   white:yellow", control_matrix_uint8)
 
         b1,b2,b3,b4=np.split(control_matrix_uint8, 4, axis= 0)
         b1=b1.reshape(1,2400)
@@ -170,7 +170,7 @@ if __name__ == "__main__":
             #serial3.write(byte_representation3)
             #serial4.write(byte_representation4)
         #time.sleep(1)
-        print("finish")
+        #print("finish")
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     c.stream_off()
