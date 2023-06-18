@@ -1,5 +1,5 @@
 import time
-
+import threading
 import cv2
 import numpy as np
 import gxipy as gx
@@ -7,10 +7,12 @@ from PIL import Image
 import struct
 from time import sleep
 from periphery import Serial
+#serial2=serial.Serial(port="/dev/ttyUSB1",baudrate=115200,bytesize=8,parity='N',stopbits=1 )
 serial1 = Serial("/dev/ttyS0", 115200)
-# serial2 = Serial("/dev/ttyUSB1", 115200)
-# serial3 = Serial("/dev/ttyUSB2", 115200)
-# serial4 = Serial("/dev/ttyUSB3", 115200)
+#serial1 = serial.Serial("/dev/ttyS0", 115200)
+# serial2 = serial.Serial("/dev/ttyUSB1", 115200)
+# serial3 = serial.Serial("/dev/ttyUSB2", 115200)
+# serial4 = serial.Serial("/dev/ttyUSB3", 115200)
 green_lower = np.array([35, 43, 46], dtype=np.uint8)
 green_upper = np.array([77, 255, 255], dtype=np.uint8)
 
@@ -82,10 +84,10 @@ def is_yellow_green(colors):
 
     # 判断颜色是否已正确分配
     if yellow is not None and green is not None:
-        print("方法一")
+        #print("方法一")
         return np.array_equal(colors[0], yellow)
     
-    print("方法二")
+    #print("方法二")
     return classify_color(colors)
 def pG(image):
     sigma = 10  # sigma = a * complex_index + b
@@ -168,11 +170,60 @@ class camera:
         np_image = self.get_current_image()
         img = Image.fromarray(np_image, 'RGB')
         img.save("image22.jpg")
+def send_serail(sleep_time):
+    f=0
+    while True:
+        if b1 is not None:
+            for i in range(154):
+                bs1=''.join(['1' if b==0 else '0' for b in b1[0,i*8:i*8+8]])
+                #bs1='11111111'
+                bs2=''.join(['1' if b==0 else '0' for b in b2[0,i*8:i*8+8]])
+                bs3=''.join(['1' if b==0 else '0' for b in b3[0,i*8:i*8+8]])
+                bs4=''.join(['1' if b==0 else '0' for b in b4[0, i * 8:i * 8 + 8]])
+                bs5=''.join(['1' if b==0 else '0' for b in b5[0,i*8:i*8+8]])
+                bs6=''.join(['1' if b==0 else '0' for b in b6[0,i*8:i*8+8]])
+                i1 = int(bs1, 2)
+                i2=int(bs2, 2)
+                i3=int(bs3, 2)
+                i4=int(bs4, 2)
+                i5=int(bs5, 2)
+                i6=int(bs6, 2)
+                byte_representation1 = struct.pack('B', i1)
+                byte_representation2 = struct.pack('B', i2)
+                byte_representation3 = struct.pack('B', i3)
+                byte_representation4 = struct.pack('B', i4)
+                byte_representation5 = struct.pack('B', i5)
+                byte_representation6 = struct.pack('B', i6)
+                serial1.write(byte_representation1)
+                #serial2.write(byte_representation2)
+                #serial3.write(byte_representation3)
+                #serial4.write(byte_representation4)
+            print("finish")
+        
+            time.sleep(sleep_time)
+# while True:
+#     for i in range(154):
+#         #bs1='10101010'
+#         bs1='11111111'
+#         i1 = int(bs1, 2)
+#         byte_representation1 = struct.pack('B', i1)
+#         serial1.write(byte_representation1)
+#     print("yes")
+#     time.sleep(5)
 if __name__ == "__main__":
+    b1=None
+    b2=None
+    b3=None
+    b4=None
+    b5=None
+    b6=None
+    
+    send_thread=threading.Thread(target=send_serail,args=(1,))
+    send_thread.start()
     c = camera()
     c.open_camera()
     c.stream_on()
-    c.set_ex_gain(10000, 10)
+    c.set_ex_gain(20000, 10)
     flag=False
     while True:
 
@@ -183,30 +234,40 @@ if __name__ == "__main__":
         control_matrix, centers,control_matrix_uint8=pG(np_image)
         if(is_yellow_green(centers)==0):
             control_matrix_uint8=255-control_matrix_uint8
-        control_matrix_uint8=cv2.resize(control_matrix_uint8,(96,100))
+        control_matrix_uint8=cv2.resize(control_matrix_uint8,(88,84))
         # control_matrix = cv2.resize(control_matrix_uint8, (96, 100), interpolation=cv2.INTER_NEAREST)
         # control_matrix = control_matrix == 1.0
         cv2.imshow("white:green   black:yellow", control_matrix_uint8)
 
-        b1,b2,b3,b4=np.split(control_matrix_uint8, 4, axis= 0)
-        b1=b1.reshape(1,2400)
-        b2 = b2.reshape(1, 2400)
-        b3 = b3.reshape(1, 2400)
-        b4 = b4.reshape(1, 2400)
-        for i in range(300):
-            bs1=''.join(['1' if b==255 else '0' for b in b1[0,i*8:i*8+8]])
-            bs2=''.join(['1' if b==255 else '0' for b in b2[0,i*8:i*8+8]])
-            bs3=''.join(['1' if b==255 else '0' for b in b3[0,i*8:i*8+8]])
-            bs4=''.join(['1' if b==255 else '0' for b in b4[0, i * 8:i * 8 + 8]])
-            i1 = int(bs1, 2)
-            i2=int(bs2, 2)
-            i3=int(bs3, 2)
-            i4=int(bs4, 2)
-            byte_representation1 = struct.pack('B', i1)
-            byte_representation2 = struct.pack('B', i2)
-            byte_representation3 = struct.pack('B', i3)
-            byte_representation4 = struct.pack('B', i4)
-            serial1.write(byte_representation1)
+        b1,b2,b3,b4,b5,b6=np.split(control_matrix_uint8, 6, axis= 0)
+        b1=b1.reshape(1,1232)
+        b2 = b2.reshape(1, 1232)
+        b3 = b3.reshape(1, 1232)
+        b4 = b4.reshape(1, 1232)
+        b5 = b5.reshape(1, 1232)
+        b6 = b6.reshape(1, 1232)
+
+        # for i in range(154):
+        #     bs1=''.join(['1' if b==255 else '0' for b in b1[0,i*8:i*8+8]])
+        #     bs2=''.join(['1' if b==255 else '0' for b in b2[0,i*8:i*8+8]])
+        #     bs3=''.join(['1' if b==255 else '0' for b in b3[0,i*8:i*8+8]])
+        #     bs4=''.join(['1' if b==255 else '0' for b in b4[0, i * 8:i * 8 + 8]])
+        #     bs5=''.join(['1' if b==255 else '0' for b in b5[0,i*8:i*8+8]])
+        #     bs6=''.join(['1' if b==255 else '0' for b in b6[0,i*8:i*8+8]])
+        #     i1 = int(bs1, 2)
+        #     i2=int(bs2, 2)
+        #     i3=int(bs3, 2)
+        #     i4=int(bs4, 2)
+        #     i5=int(bs5, 2)
+        #     i6=int(bs6, 2)
+
+        #     byte_representation1 = struct.pack('B', i1)
+        #     byte_representation2 = struct.pack('B', i2)
+        #     byte_representation3 = struct.pack('B', i3)
+        #     byte_representation4 = struct.pack('B', i4)
+        #     byte_representation5 = struct.pack('B', i5)
+        #     byte_representation6 = struct.pack('B', i6)
+            #serial1.write(byte_representation1)
             # serial2.write(byte_representation2)
             # serial3.write(byte_representation3)
             # serial4.write(byte_representation4)
@@ -214,6 +275,7 @@ if __name__ == "__main__":
         #print("finish")
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+    b1=None
     c.stream_off()
     c.close_crema()
     cv2.destroyAllWindows()
