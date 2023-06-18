@@ -28,6 +28,44 @@ yellow_upper = np.array([34, 255, 255], dtype=np.uint8)
 #     is_second_color_yellow = yellow_mask.any()
 
 #     return is_first_color_green and is_second_color_yellow
+import cv2
+import numpy as np
+
+def classify_color(colors):
+    # 将BGR颜色转换为HSV颜色
+    colors_hsv = cv2.cvtColor(colors.reshape(2, 1, 3), cv2.COLOR_BGR2HSV).reshape(2, 3)
+
+    # 定义标准黄色和绿色的HSV值
+    # 注意：这些值可能需要根据具体情况进行调整
+    standard_yellow_hsv = np.array([25, 255, 255])  # 示例值，需要调整
+    standard_green_hsv = np.array([60, 255, 255])   # 示例值，需要调整
+
+    def hue_distance(hue1, hue2):
+        """计算两个色调值之间的最短距离"""
+        d = abs(hue1 - hue2)
+        return min(d, 360 - d)
+
+    distances = []
+    for color_hsv in colors_hsv:
+        hue_distance_to_yellow = hue_distance(color_hsv[0], standard_yellow_hsv[0])
+        hue_distance_to_green = hue_distance(color_hsv[0], standard_green_hsv[0])
+        
+        sv_distance_to_yellow = np.linalg.norm(color_hsv[1:] - standard_yellow_hsv[1:])
+        sv_distance_to_green = np.linalg.norm(color_hsv[1:] - standard_green_hsv[1:])
+        
+        weighted_distance_to_yellow = hue_distance_to_yellow * 0.7 + sv_distance_to_yellow * 0.3
+        weighted_distance_to_green = hue_distance_to_green * 0.7 + sv_distance_to_green * 0.3
+
+        distances.append((weighted_distance_to_yellow, weighted_distance_to_green))
+
+    # 比较两种颜色与黄色和绿色的距离，决定分类
+    if distances[0][0] + distances[1][1] < distances[0][1] + distances[1][0]:
+        # 第一种颜色更接近黄色，第二种颜色更接近绿色
+        return 1
+    else:
+        # 第一种颜色更接近绿色，第二种颜色更接近黄色
+        return 0
+
 def is_yellow_green(colors):
     color1, color2 = colors
 
@@ -36,18 +74,19 @@ def is_yellow_green(colors):
 
     # 黄色的红色值通常比绿色的高，蓝色值较低
     if color1[0] > color2[0] and color1[2] < color2[2]:
-        yellow = color1
-        green = color2
-    elif color2[0] > color1[0] and color2[2] < color1[2]:
         yellow = color2
         green = color1
+    elif color2[0] > color1[0] and color2[2] < color1[2]:
+        yellow = color1
+        green = color2
 
     # 判断颜色是否已正确分配
     if yellow is not None and green is not None:
+        print("方法一")
         return np.array_equal(colors[0], yellow)
-
-    # 如果颜色无法准确判断，则返回False
-    return False
+    
+    print("方法二")
+    return classify_color(colors)
 def pG(image):
     sigma = 10  # sigma = a * complex_index + b
     blurred_image = cv2.GaussianBlur(image, (5, 5), sigma)
@@ -138,14 +177,16 @@ if __name__ == "__main__":
     while True:
 
         np_image=c.get_current_image()
-        np_image=cv2.resize(np_image,(400,400))
+        bgr_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
+        np_image=cv2.resize(bgr_image,(400,400))
+        cv2.imshow("src",np_image)
         control_matrix, centers,control_matrix_uint8=pG(np_image)
-        if(is_yellow_green(centers)):
+        if(is_yellow_green(centers)==0):
             control_matrix_uint8=255-control_matrix_uint8
         control_matrix_uint8=cv2.resize(control_matrix_uint8,(96,100))
         # control_matrix = cv2.resize(control_matrix_uint8, (96, 100), interpolation=cv2.INTER_NEAREST)
         # control_matrix = control_matrix == 1.0
-        cv2.imshow("black:green   white:yellow", control_matrix_uint8)
+        cv2.imshow("white:green   black:yellow", control_matrix_uint8)
 
         b1,b2,b3,b4=np.split(control_matrix_uint8, 4, axis= 0)
         b1=b1.reshape(1,2400)

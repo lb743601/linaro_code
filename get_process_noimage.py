@@ -6,7 +6,7 @@ import gxipy as gx
 from PIL import Image
 from time import sleep
 from periphery import Serial
-serial = Serial("/dev/ttyUSB0", 9600)
+serial = Serial("/dev/ttyS0", 9600)
 def calculate_line_equation(x1, y1, x2, y2):
     if x2 - x1 != 0:
         m = (y2 - y1) / (x2 - x1)
