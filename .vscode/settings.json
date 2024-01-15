@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.linux": {
+        "PYTHONUNBUFFERED": "1",
+        "DISPLAY": "localhost:10.0"
+    }
+}
