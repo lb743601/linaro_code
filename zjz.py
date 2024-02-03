@@ -7,10 +7,10 @@ from PIL import Image
 import struct
 from time import sleep
 from periphery import Serial
-serial1 = Serial("/dev/ttyS0", 115200)
-# serial2 = Serial("/dev/ttyUSB1", 115200)
-# serial3 = Serial("/dev/ttyUSB2", 115200)
-# serial4 = Serial("/dev/ttyUSB3", 115200)
+serial1 = Serial("/dev/ttyUSB0", 115200)
+serial2 = Serial("/dev/ttyUSB1", 115200)
+serial3 = Serial("/dev/ttyUSB2", 115200)
+serial4 = Serial("/dev/ttyUSB3", 115200)
 green_lower = np.array([35, 43, 46], dtype=np.uint8)
 green_upper = np.array([77, 255, 255], dtype=np.uint8)
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     c = camera()
     c.open_camera()
     c.stream_on()
-    c.set_ex_gain(40000, 10)
+    c.set_ex_gain(10000, 10)
     flag=False
     while True:
 
@@ -207,9 +207,9 @@ if __name__ == "__main__":
             byte_representation3 = struct.pack('B', i3)
             byte_representation4 = struct.pack('B', i4)
             serial1.write(byte_representation1)
-            #serial2.write(byte_representation2)
-            #serial3.write(byte_representation3)
-            #serial4.write(byte_representation4)
+            serial2.write(byte_representation2)
+            serial3.write(byte_representation3)
+            serial4.write(byte_representation4)
         #time.sleep(1)
         #print("finish")
         if cv2.waitKey(1) & 0xFF == ord('q'):
